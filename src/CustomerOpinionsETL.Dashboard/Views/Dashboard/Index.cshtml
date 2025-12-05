@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Total comentarios</h5>
+            <h2 id="total-comments">...</h2>
+        </div>
+        <div class="card mt-3 p-3">
+            <h5>Clasificación</h5>
+            <canvas id="sentimentChart"></canvas>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card p-3">
+            <h5>Top productos por cantidad de comentarios</h5>
+            <canvas id="topProducts"></canvas>
+        </div>
+        <div class="card mt-3 p-3">
+            <h5>Tendencia por mes (promedio satisfacción)</h5>
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const format = (v) => v == null ? 0 : v;
+        async function load() {
+            const totalResp = await fetch('/api/dashboard/total');
+            const totalJson = await totalResp.json();
+            document.getElementById('total-comments').innerText = totalJson.total;
+
+            const sentResp = await fetch('/api/dashboard/sentiment');
+            const sent = await sentResp.json();
+            window.renderSentimentChart(sent);
+
+            const topResp = await fetch('/api/dashboard/top-products?top=8');
+            const top = await topResp.json();
+            window.renderTopProducts(top);
+
+            const trendResp = await fetch('/api/dashboard/trend?months=12');
+            const trend = await trendResp.json();
+            window.renderTrend(trend);
+        }
+        load();
+    })();
+</script>
