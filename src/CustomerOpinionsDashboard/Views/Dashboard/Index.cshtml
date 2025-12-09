@@ -1,0 +1,226 @@
+﻿@using CustomerOpinionsDashboard.Models
+@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "Customer Opinions Dashboard";
+}
+
+
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card kpi-card">
+            <div class="kpi-label">Total Comments</div>
+            <div class="kpi-value" id="totalComments">@Model?.Kpi?.TotalComments ?? 0</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card kpi-card positive">
+            <div class="kpi-label">NPS</div>
+            <div class="kpi-value" id="npsValue">@Model?.Kpi?.NPS.ToString("F1") ?? "0.0"</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card kpi-card neutral">
+            <div class="kpi-label">CSAT</div>
+            <div class="kpi-value" id="csatValue">@Model?.Kpi?.CSAT.ToString("F1") ?? "0.0"<span style="font-size: 0.9rem;">%</span></div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card kpi-card">
+            <div class="kpi-label">Avg Satisfaction</div>
+            <div class="kpi-value" id="avgSatisfaction">@Model?.Kpi?.AvgSatisfaction.ToString("F1") ?? "0.0"</div>
+        </div>
+    </div>
+</div>
+
+
+<div class="filter-section">
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label for="fromDate" class="form-label">From Date</label>
+            <input type="date" class="form-control" id="fromDate" name="fromDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="toDate" class="form-label">To Date</label>
+            <input type="date" class="form-control" id="toDate" name="toDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="searchText" class="form-label">Search</label>
+            <input type="text" class="form-control" id="searchText" name="searchText" placeholder="Search comments..." />
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+        </div>
+    </form>
+</div>
+
+
+<div class="row mb-4">
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-pie-chart"></i> Sentiment Distribution
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bar-chart"></i> Top Products
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row mb-4">
+    
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-line-chart"></i> Monthly Trend
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-server"></i> Opinions by Channel
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="channelChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-table"></i> Recent Opinions
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Product</th>
+                                <th>Client</th>
+                                <th>Sentiment</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Channel</th>
+                            </tr>
+                        </thead>
+                        <tbody id="opinionsTable">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">Loading opinions...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadDashboard();
+        });
+
+        async function loadDashboard() {
+            try {
+
+                const sentimentResp = await fetch('/api/dashboard/sentiment');
+                const sentimentData = await sentimentResp.json();
+                initSentimentChart(sentimentData);
+
+
+                const productsResp = await fetch('/api/dashboard/top-products?top=8');
+                const productsData = await productsResp.json();
+                initTopProductsChart(productsData);
+
+
+                const trendResp = await fetch('/api/dashboard/trend?months=12');
+                const trendData = await trendResp.json();
+                initTrendChart(trendData);
+
+
+                const channelResp = await fetch('/api/dashboard/channels');
+                const channelData = await channelResp.json();
+                initChannelChart(channelData);
+
+
+                const opinionsResp = await fetch('/api/dashboard/opinions?pageSize=10');
+                const opinionsData = await opinionsResp.json();
+                loadOpinionsTable(opinionsData.items);
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        function loadOpinionsTable(opinions) {
+            const tbody = document.getElementById('opinionsTable');
+            tbody.innerHTML = '';
+            
+            if (!opinions || opinions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No opinions found</td></tr>';
+                return;
+            }
+
+            opinions.forEach(opinion => {
+                const sentimentClass = opinion.sentiment === 'Positive' ? 'sentiment-positive' : 
+                                     opinion.sentiment === 'Negative' ? 'sentiment-negative' : 'sentiment-neutral';
+                const sentimentIcon = opinion.sentiment === 'Positive' ? 'ðŸ‘' : 
+                                    opinion.sentiment === 'Negative' ? 'ðŸ‘Ž' : 'âž–';
+
+                const row = `
+                    <tr>
+                        <td>${new Date(opinion.date).toLocaleDateString()}</td>
+                        <td>${opinion.productName || '-'}</td>
+                        <td>${opinion.clientName || '-'}</td>
+                        <td><span class="${sentimentClass}">${sentimentIcon} ${opinion.sentiment}</span></td>
+                        <td>${opinion.rating ? `<span class="badge bg-info">${opinion.rating}/5</span>` : '-'}</td>
+                        <td><small>${truncateText(opinion.comment, 100)}</small></td>
+                        <td><span class="badge bg-secondary">${opinion.channel}</span></td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text) return '-';
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        }
+    </script>
+}
