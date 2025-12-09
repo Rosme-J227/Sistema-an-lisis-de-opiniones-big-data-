@@ -47,16 +47,16 @@ BEGIN TRY
 
     PRINT 'Upserting DimTiempo from SYN rows...';
 
-    INSERT INTO Dimension.DimTiempo (Fecha, Dia, Mes, [AÃ±o], Trimestre, Nombre_Mes, Nombre_dia, Mes_aÃ±o, Es_Fin_Semana)
+    INSERT INTO Dimension.DimTiempo (Fecha, Dia, Mes, [Año], Trimestre, Nombre_Mes, Nombre_dia, Mes_año, Es_Fin_Semana)
     SELECT DISTINCT
         CONVERT(date, s.FechaOrigen) AS Fecha,
         DATEPART(day, s.FechaOrigen) AS Dia,
         DATEPART(month, s.FechaOrigen) AS Mes,
-      DATEPART(year, s.FechaOrigen) AS [AÃ±o],
+      DATEPART(year, s.FechaOrigen) AS [Año],
         ((DATEPART(month, s.FechaOrigen)-1)/3)+1 AS Trimestre,
         DATENAME(month, s.FechaOrigen) AS Nombre_Mes,
         DATENAME(weekday, s.FechaOrigen) AS Nombre_dia,
-        RIGHT('0' + CAST(DATEPART(month, s.FechaOrigen) AS VARCHAR(2)),2) + '-' + CAST(DATEPART(year, s.FechaOrigen) AS VARCHAR(4)) AS Mes_aÃ±o,
+        RIGHT('0' + CAST(DATEPART(month, s.FechaOrigen) AS VARCHAR(2)),2) + '-' + CAST(DATEPART(year, s.FechaOrigen) AS VARCHAR(4)) AS Mes_año,
         CASE WHEN DATEPART(weekday, s.FechaOrigen) IN (1,7) THEN 1 ELSE 0 END AS Es_Fin_Semana
     FROM Staging.StgOpiniones s
     WHERE s.EstadoCarga = 'NEW' AND s.IdOrigen LIKE 'SYN%'

@@ -173,6 +173,17 @@ public class StagingProcessor : IStagingProcessor
         var hashes = new HashSet<string>();
         var cmd = con.CreateCommand();
         cmd.Transaction = transaction;
+        // Check that the column exists before querying to avoid SQL errors on databases that haven't been migrated
+        cmd.CommandText = @"SELECT COL_LENGTH('Fact.FactOpiniones', 'Hash_Comentario')";
+        var colLen = await cmd.ExecuteScalarAsync(ct);
+        if (colLen == null || colLen == DBNull.Value)
+        {
+            _logger?.LogInformation("Hash_Comentario column not present in Fact.FactOpiniones - skipping duplicate hash load");
+            return hashes;
+        }
+
+        cmd = con.CreateCommand();
+        cmd.Transaction = transaction;
         cmd.CommandText = @"SELECT DISTINCT Hash_Comentario 
                            FROM Fact.FactOpiniones 
                            WHERE Fecha_carga > DATEADD(DAY, -@Days, GETDATE())
@@ -359,9 +370,9 @@ public class StagingProcessor : IStagingProcessor
         var ins = con.CreateCommand();
         ins.Transaction = transaction;
         ins.CommandText = @"INSERT INTO Dimension.DimTiempo 
-                           (Fecha, Dia, Mes, AÃ±o, Trimestre, Nombre_Mes, Nombre_dia, Mes_aÃ±o, Es_Fin_Semana)
-                           OUTPUT INSERTED.Tiempo_id
-                           VALUES (@Fecha, @Dia, @Mes, @Ano, @Trimestre, @NombreMes, @NombreDia, @MesAno, @EsFin)";
+                   (Fecha, Dia, Mes, [Año], Trimestre, Nombre_Mes, Nombre_dia, Mes_año, Es_Fin_Semana)
+                   OUTPUT INSERTED.Tiempo_id
+                   VALUES (@Fecha, @Dia, @Mes, @Ano, @Trimestre, @NombreMes, @NombreDia, @MesAno, @EsFin)";
         ins.Parameters.AddWithValue("@Fecha", dateOnly);
         ins.Parameters.AddWithValue("@Dia", fecha.Day);
         ins.Parameters.AddWithValue("@Mes", fecha.Month);

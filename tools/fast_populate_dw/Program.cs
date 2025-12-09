@@ -293,11 +293,11 @@ try
     tiempoDt.Columns.Add(new DataColumn("Fecha", typeof(DateTime)));
     tiempoDt.Columns.Add(new DataColumn("Dia", typeof(int)));
     tiempoDt.Columns.Add(new DataColumn("Mes", typeof(int)));
-    tiempoDt.Columns.Add(new DataColumn("AÃ±o", typeof(int)));
+    tiempoDt.Columns.Add(new DataColumn("Año", typeof(int))); 
     tiempoDt.Columns.Add(new DataColumn("Trimestre", typeof(int)));
     tiempoDt.Columns.Add(new DataColumn("Nombre_Mes", typeof(string)));
     tiempoDt.Columns.Add(new DataColumn("Nombre_dia", typeof(string)));
-    tiempoDt.Columns.Add(new DataColumn("Mes_aÃ±o", typeof(string)));
+    tiempoDt.Columns.Add(new DataColumn("Mes_año", typeof(string)));
     tiempoDt.Columns.Add(new DataColumn("Es_Fin_Semana", typeof(bool)));
 
     foreach (var d in dateSet.OrderBy(x => x))
@@ -310,11 +310,11 @@ try
         r["Fecha"] = d;
         r["Dia"] = d.Day;
         r["Mes"] = d.Month;
-        r["AÃ±o"] = d.Year;
+        r["Año"] = d.Year;
         r["Trimestre"] = (d.Month - 1) / 3 + 1;
         r["Nombre_Mes"] = CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(d.Month);
         r["Nombre_dia"] = d.DayOfWeek.ToString();
-        r["Mes_aÃ±o"] = d.ToString("MM-yyyy");
+        r["Mes_año"] = d.ToString("MM-yyyy");
         r["Es_Fin_Semana"] = (d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday);
         tiempoDt.Rows.Add(r);
     }
@@ -326,11 +326,11 @@ try
         bulk.ColumnMappings.Add("Fecha", "Fecha");
         bulk.ColumnMappings.Add("Dia", "Dia");
         bulk.ColumnMappings.Add("Mes", "Mes");
-        bulk.ColumnMappings.Add("AÃ±o", "AÃ±o");
+        bulk.ColumnMappings.Add("Año", "Año");
         bulk.ColumnMappings.Add("Trimestre", "Trimestre");
         bulk.ColumnMappings.Add("Nombre_Mes", "Nombre_Mes");
         bulk.ColumnMappings.Add("Nombre_dia", "Nombre_dia");
-        bulk.ColumnMappings.Add("Mes_aÃ±o", "Mes_aÃ±o");
+        bulk.ColumnMappings.Add("Mes_año", "Mes_año");
         bulk.ColumnMappings.Add("Es_Fin_Semana", "Es_Fin_Semana");
         await bulk.WriteToServerAsync(tiempoDt);
         Console.WriteLine($"Inserted {tiempoDt.Rows.Count} fechas into Dimension.DimTiempo");

@@ -214,8 +214,8 @@ BEGIN
     DECLARE @FechaFin DATE = GETDATE()
     
     SELECT 
-        CONCAT(MONTH(t.Fecha), '/', YEAR(t.Fecha)) AS MesAÃ±o,
-        YEAR(t.Fecha) AS AÃ±o,
+        CONCAT(MONTH(t.Fecha), '/', YEAR(t.Fecha)) AS MesAño,
+        YEAR(t.Fecha) AS Año,
         MONTH(t.Fecha) AS Mes,
         COUNT(f.Opinion_id) AS TotalOpiniones,
         AVG(CAST(f.Puntaje_Satisfaccion AS FLOAT)) AS SatisfaccionPromedio,
@@ -231,7 +231,7 @@ BEGIN
     LEFT JOIN Dimension.DimSentimiento s ON f.Sentimiento_id = s.Sentimiento_id
     WHERE t.Fecha BETWEEN @FechaInicio AND @FechaFin
     GROUP BY YEAR(t.Fecha), MONTH(t.Fecha)
-    ORDER BY AÃ±o DESC, Mes DESC
+    ORDER BY Año DESC, Mes DESC
 END
 GO
 

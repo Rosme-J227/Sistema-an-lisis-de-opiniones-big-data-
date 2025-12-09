@@ -81,11 +81,11 @@ BEGIN
         Fecha,
         Dia,
         Mes,
-        AÃ±o,
+        Año,
         Trimestre,
         Nombre_Mes,
         Nombre_dia,
-        Mes_aÃ±o,
+        Mes_año,
         Es_Fin_Semana
     )
     VALUES (

@@ -223,7 +223,19 @@ public class ApiExtractor : IExtractor
             }
             catch (HttpRequestException ex)
             {
-                _logger?.LogError(ex, "HTTP error on page {Page} attempt {Attempt}: {Message}", page, attempt, ex.Message);
+                // Some HttpRequestExceptions (like connection refused) do not have an HTTP status code.
+                // Treat those as transient network errors and retry until max attempts.
+                _logger?.LogWarning(ex, "HTTP error on page {Page} attempt {Attempt}: {Message}", page, attempt, ex.Message);
+                if (ex.StatusCode == null && attempt < _maxRetries)
+                {
+                    int delayMs = (int)Math.Pow(2, attempt) * 1000;
+                    _logger?.LogInformation("Transient HTTP error (no status). Retrying in {DelayMs}ms", delayMs);
+                    await Task.Delay(delayMs, ct);
+                    continue;
+                }
+
+                // otherwise rethrow so calling code can handle non-transient HTTP status codes
+                _logger?.LogError(ex, "Non-recoverable HTTP error on page {Page} attempt {Attempt}: {Message}", page, attempt, ex.Message);
                 throw;
             }
         }

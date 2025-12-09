@@ -1,8 +1,5 @@
 ﻿using System;
-using Dapper;
-using Microsoft.Data.SqlClient;
-using Serilog;
-using CustomerOpinionsETL.Dashboard.Services;
+// (usings consolidated above)
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;

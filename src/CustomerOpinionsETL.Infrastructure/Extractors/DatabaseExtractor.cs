@@ -20,7 +20,7 @@ public class DatabaseExtractor : IExtractor
     private readonly ILogger<DatabaseExtractor>? _logger;
     private readonly IConfiguration? _config;
 
-    public DatabaseExtractor(
+        public DatabaseExtractor(
         string connectionString,
         string? query = null,
         int commandTimeout = 300,
@@ -29,7 +29,9 @@ public class DatabaseExtractor : IExtractor
         IConfiguration? config = null)
     {
         _connectionString = connectionString;
-        _query = query ?? config?["Database:Query"] ?? "SELECT IdOrigen, ClienteId, ProductoId, Fuente, Fecha, Comentario, Puntaje, Rating FROM SourceOpiniones.dbo.Reviews ORDER BY ReviewId";
+        // Default to reading from the staging table so the extractor works in local/dev environments
+        _query = query ?? config?["Database:Query"] ??
+                 "SELECT IdOrigen, ClienteId, CodigoProducto AS ProductoId, Fuente, FechaOrigen AS Fecha, Comentario, Puntaje, Rating FROM Staging.StgOpiniones WHERE EstadoCarga='NEW' ORDER BY StgId";
         _commandTimeout = config?.GetValue<int>("Database:Timeout") ?? commandTimeout;
         _maxRetries = maxRetries;
         _logger = logger;

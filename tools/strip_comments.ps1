@@ -24,8 +24,12 @@ function Remove-CommentsFromText {
             $Text = [regex]::Replace($Text,'(?m)--.*$','')
         }
         '.ps1' {
-            $Text = [regex]::Replace($Text,'','', [System.Text.RegularExpressions.RegexOptions]::Singleline)
-            $Text = [regex]::Replace($Text,'(?m)
+            # Remove block comments: <# ... #>
+            $Text = [regex]::Replace($Text,'<#(?s).*?#>','', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+
+            # Remove single-line comments that start with '#' (allow leading whitespace)
+            # Preserve shebang (#!) if present
+            $Text = [regex]::Replace($Text,'(?m)^(?!\s*#!)\s*#.*$','')
         }
         '.js' {
             $Text = [regex]::Replace($Text,'/\*.*?\*/','', [System.Text.RegularExpressions.RegexOptions]::Singleline)
@@ -68,7 +72,7 @@ foreach ($p in $Paths) {
                 $orig = Get-Content -Raw -LiteralPath $file -ErrorAction Stop
             } catch {
                 $skipped += $file
-                return
+                continue
             }
             $backup = "$file.bak"
             if (-not (Test-Path $backup)) { Copy-Item -LiteralPath $file -Destination $backup -Force }
