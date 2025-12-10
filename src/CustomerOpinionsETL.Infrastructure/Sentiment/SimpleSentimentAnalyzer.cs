@@ -1,12 +1,29 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using CustomerOpinionsETL.Core.Interfaces;
+
 namespace CustomerOpinionsETL.Infrastructure.Sentiment;
 public class SimpleSentimentAnalyzer : ISentimentAnalyzer
 {
+    private readonly string[] _positiveWords;
+    private readonly string[] _negativeWords;
 
-    private static readonly string[] PositiveWords = new[] { "bueno", "excelente", "genial", "perfecto", "agradable", "recomend", "love", "great", "fantast" };
-    private static readonly string[] NegativeWords = new[] { "malo", "terrible", "horrible", "defecto", "devolver", "hate", "bad", "peor", "problema" };
+    public SimpleSentimentAnalyzer(IConfiguration config)
+    {
+        var pos = config["Sentiment:PositiveWords"];
+        var neg = config["Sentiment:NegativeWords"];
+
+        if (!string.IsNullOrWhiteSpace(pos))
+            _positiveWords = pos.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim().ToLowerInvariant()).ToArray();
+        else
+            _positiveWords = new[] { "bueno", "excelente", "genial", "perfecto", "agradable", "recomend", "love", "great", "fantast" };
+
+        if (!string.IsNullOrWhiteSpace(neg))
+            _negativeWords = neg.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim().ToLowerInvariant()).ToArray();
+        else
+            _negativeWords = new[] { "malo", "terrible", "horrible", "defecto", "devolver", "hate", "bad", "peor", "problema" };
+    }
 
     public (string Classification, double Score) Analyze(string? text)
     {
@@ -14,8 +31,8 @@ public class SimpleSentimentAnalyzer : ISentimentAnalyzer
             return ("Neutral", 0.0);
 
         var lower = text.ToLowerInvariant();
-        int pos = PositiveWords.Count(w => lower.Contains(w));
-        int neg = NegativeWords.Count(w => lower.Contains(w));
+        int pos = _positiveWords.Count(w => lower.Contains(w));
+        int neg = _negativeWords.Count(w => lower.Contains(w));
 
         if (pos == 0 && neg == 0)
             return ("Neutral", 0.0);

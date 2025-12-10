@@ -47,11 +47,14 @@ var host = builder.Build();
 
 using (var scope = host.Services.CreateScope())
 {
+    var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var runOnce = cfg.GetValue<bool>("Worker:RunOnce");
     var proc = scope.ServiceProvider.GetService<CustomerOpinionsETL.Core.Interfaces.IStagingProcessor>();
-    if (proc != null)
+    if (proc != null && runOnce)
     {
-
         await proc.ProcessNewAsync();
+        // If configured to run once, exit after processing.
+        return;
     }
 }
 
