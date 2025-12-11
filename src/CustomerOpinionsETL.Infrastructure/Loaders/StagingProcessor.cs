@@ -21,18 +21,21 @@ public class StagingProcessor : IStagingProcessor
     private readonly ISentimentAnalyzer _sentiment;
     private readonly ILogService _log;
     private readonly ILogger<StagingProcessor>? _logger;
+    private readonly bool _dryRun;
     private const int DuplicateWindowDays = 7;
 
     public StagingProcessor(
         string dwhConnection,
         ISentimentAnalyzer sentiment,
         ILogService log,
+        bool dryRun = false,
         ILogger<StagingProcessor>? logger = null)
     {
         _dwhConnection = dwhConnection;
         _sentiment = sentiment;
         _log = log;
         _logger = logger;
+        _dryRun = dryRun;
     }
 
     public async Task ProcessNewAsync(CancellationToken ct = default)
@@ -428,6 +431,11 @@ public class StagingProcessor : IStagingProcessor
         int tiempoId, int productoId, int clienteId, int fuenteId, int sentimientoId, StagingRow row, 
         double score, string hash, CancellationToken ct)
     {
+        if (_dryRun)
+        {
+            _logger?.LogInformation("DryRun: skipping insert for OpinionId {OpinionId}", opinionId);
+            return;
+        }
         var cmd = con.CreateCommand();
         cmd.Transaction = transaction;
         cmd.CommandText = @"INSERT INTO Fact.FactOpiniones

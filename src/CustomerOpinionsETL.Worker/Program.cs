@@ -29,10 +29,12 @@ var builder = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton<ISentimentAnalyzer, CustomerOpinionsETL.Infrastructure.Sentiment.SimpleSentimentAnalyzer>();
 
+        var dryRun = cfg.GetValue<bool>("Worker:DryRun", false);
         services.AddSingleton<IStagingProcessor>(sp => new CustomerOpinionsETL.Infrastructure.Loaders.StagingProcessor(
             cfg.GetConnectionString("DW") ?? "",
             sp.GetRequiredService<ISentimentAnalyzer>(),
-            sp.GetRequiredService<ILogService>()));
+            sp.GetRequiredService<ILogService>(),
+            dryRun));
 
         services.AddHostedService(sp => new WorkerHosted(
             sp.GetRequiredService<ILogger<WorkerHosted>>(),

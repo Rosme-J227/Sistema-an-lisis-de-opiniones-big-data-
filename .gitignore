@@ -1,8 +1,26 @@
+# Visual Studio / build
 bin/
 obj/
 .vs/
 *.user
 *.suo
+
+# Logs and runtime
 logs/
-data/
+*.log
+*.out
+
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Environment
+.env
+.env.*
+
+# .NET user secrets
 **/appsettings.Development.json
+
+# Ignore local editor settings
+.vscode/
